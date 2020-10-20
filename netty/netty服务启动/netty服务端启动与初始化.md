@@ -1,0 +1,180 @@
+# ***Netty 服务端启动***
+
+#### 创建服务端Channel
+
+#### 初始化服务端Channel
+
+#### 注册Seletor
+
+#### 端口绑定
+
+---
+
+> bind() ***<font color=#FF0000 >[用户代码入口]</font>***
+>
+> >initAndRegister() ***<font color=#FF0000 >[初始化并注册]</font>***   
+> >
+> >> newChannel() ***<font color=#FF0000 >[创建服务端Channel]</font>***   
+> >> init() ***<font color=#FF0000 >[初始化服务端channel]</font>***   
+> >>>set ChannelOptions,ChannelAttrs   
+> >>>set ChildOptions,ChildAttrs  
+> >>>config handler ***<font color=#FF0000 >[配置服务端 pipeline]</font>***  
+> >>>add ServerBootstrapAcceptor ***<font color=#FF0000 >[添加连接器]</font>***
+
+#### 对照代码：
+
+```
+ChannelFuture f = b.bind(8888).sync();
+```
+
+AbstractBootstrap.java
+----
+---
+
+```
+public ChannelFuture bind(SocketAddress localAddress) {
+    validate();
+    if (localAddress == null) {
+        throw new NullPointerException("localAddress");
+    }
+    return doBind(localAddress);
+}
+```
+
+```
+private ChannelFuture doBind(final SocketAddress localAddress) {
+    final ChannelFuture regFuture = initAndRegister();
+    final Channel channel = regFuture.channel();
+    ...
+}
+```
+
+```
+final ChannelFuture initAndRegister() {
+    Channel channel = null;
+    try {
+        channel = channelFactory.newChannel();
+        init(channel);
+    } catch (Throwable t) {
+    ...
+}
+
+```
+ReflectiveChannelFactory.java
+----
+>在这里可以看到 clazz.newInstance() 方法进行实例
+
+---
+```
+@Override
+public T newChannel() {
+    try {
+        return clazz.newInstance();
+    } catch (Throwable t) {
+        throw new ChannelException("Unable to create Channel from class " + clazz, t);
+    }
+}
+```
+
+
+官方示例 server.java
+----
+```
+ServerBootstrap b = new ServerBootstrap();
+b.group(bossGroup, workerGroup)
+    .channel(NioServerSocketChannel.class)
+    .handler(new ServerHandler())
+    ...
+
+ChannelFuture f = b.bind(8888).sync();
+f.channel().closeFuture().sync();
+```
+>AbstractBootstrap.java  
+>查看 channel(NioServerSocketChannel.class) 方法  
+>ServerBootstrap 作为 AbstractBootstrap 泛型类，继承了 channel 方法，而 ServerBootstrap的定义中，所以接下来channel方法传输的对象的就是 ServerChannel 接口的 衍型
+
+```
+ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerChannel>
+
+AbstractBootstrap<B extends AbstractBootstrap<B, C>, C extends Channel> 
+
+public B channel(Class<? extends C> channelClass) {
+    if (channelClass == null) {
+        throw new NullPointerException("channelClass");
+    }
+    return channelFactory(new ReflectiveChannelFactory<C>(channelClass));
+}
+```
+>在这里可以看到，在AbstractBootstrap中，通过channelClass构建 ReflectiveChannelFactory 对象，再利用反射进行创建。  
+>而 channelFactory 只是例行检查，然后返回。
+
+
+AbstractBootstrap.java (init初始化过程)
+----
+>set ChannelOptions,ChannelAttrs  
+>options0()拿到用户设置的option,在设置到config中  
+>attrs0()同上
+
+>set ChildOptions,ChildAttrs
+
+>配置服务端 pipeline
+>>config.handler() 将用户自定义的pipeline配置进去
+
+```
+void init(Channel channel) throws Exception {
+    //option 与 attrs
+    final Map<ChannelOption<?>, Object> options = options0();
+    synchronized (options) {
+        channel.config().setOptions(options);
+    }
+    final Map<AttributeKey<?>, Object> attrs = attrs0();
+    synchronized (attrs) {
+        for (Entry<AttributeKey<?>, Object> e: attrs.entrySet()) {
+            @SuppressWarnings("unchecked")
+            AttributeKey<Object> key = (AttributeKey<Object>) e.getKey();
+            channel.attr(key).set(e.getValue());
+        }
+    }
+    
+    // ChildOptions 与 ChildAttrs
+    final Entry<ChannelOption<?>, Object>[] currentChildOptions;
+    final Entry<AttributeKey<?>, Object>[] currentChildAttrs;
+    synchronized (childOptions) {
+        currentChildOptions = childOptions.entrySet().toArray(newOptionArray(childOptions.size()));
+    }
+    synchronized (childAttrs) {
+        currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(childAttrs.size()));
+    }
+
+    // pipeLine
+    ChannelPipeline p = channel.pipeline();
+
+    final EventLoopGroup currentChildGroup = childGroup;
+    final ChannelHandler currentChildHandler = childHandler;
+    
+    p.addLast(new ChannelInitializer<Channel>() {
+        @Override
+        public void initChannel(Channel ch) throws Exception {
+            final ChannelPipeline pipeline = ch.pipeline();
+            ChannelHandler handler = config.handler();
+            if (handler != null) {
+                pipeline.addLast(handler);
+            }
+
+            //配置serverBootstrapAcceptor
+
+            // We add this handler via the EventLoop as the user may have used a ChannelInitializer as handler.
+            // In this case the initChannel(...) method will only be called after this method returns. Because
+            // of this we need to ensure we add our handler in a delayed fashion so all the users handler are
+            // placed in front of the ServerBootstrapAcceptor.
+            ch.eventLoop().execute(new Runnable() {
+                @Override
+                public void run() {
+                    pipeline.addLast(new ServerBootstrapAcceptor(
+                            currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+                }
+            });
+        }
+    });
+}
+```
