@@ -13,7 +13,7 @@ NioServerSocketChannel.java （Socket初始过程）
 构造函数 本质上是通过 java NIO SelectorProvider.openServerSocketChannel()方法进行构建
 
 ---
-```
+```java
 /**
     * Create a new instance
     */
@@ -42,7 +42,7 @@ SocketChannel 配置过程
 ----
 
 >NioServerSocketChannelConfig 就是对当前配置的一个抽象
-```
+```java
 // Create a new instance using the given {@link ServerSocketChannel}.
     
 public NioServerSocketChannel(ServerSocketChannel channel) {
@@ -57,7 +57,7 @@ public NioServerSocketChannel(ServerSocketChannel channel) {
 
 ***1. 设置 channel 非阻塞***
 
-```
+```java
 /**
     * Create a new instance
     *
@@ -90,7 +90,7 @@ protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInter
 >AbstractChannel.java
 
 >>AbstractNioChannel 作为 AbstractChannel 的衍型类，使用super对channel的 id,unsafe,papiline进行配置
-```
+```java
 protected AbstractChannel(Channel parent) {
     this.parent = parent;
     id = newId();
