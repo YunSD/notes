@@ -9,10 +9,96 @@
 
 AbstractChannel.java
 ---- 
-```
+
+>AbstractChannel.this.eventLoop = eventLoop;  
+>将后续的 channel 事件都交由 eventLoop 进行处理
 
 ```
+@Override
+public final void register(EventLoop eventLoop, final ChannelPromise promise) {
+    ···
+    AbstractChannel.this.eventLoop = eventLoop;
 
+    if (eventLoop.inEventLoop()) {
+        register0(promise);
+    } else {
+        try {
+            eventLoop.execute(new Runnable() {
+                @Override
+                public void run() {
+                    register0(promise);
+                }
+            });
+        } catch (Throwable t) {
+            logger.warn(···);
+            closeForcibly();
+            closeFuture.setClosed();
+            safeSetFailure(promise, t);
+        }
+    }
+}
+```
+>register0 方法就是实质上的注册  
+>主要三个操作
+>1. doRegister()
+>2. pipeline.invokeHandlerAddedIfNeeded()
+>3. pipeline.fireChannelRegistered()
+```
+private void register0(ChannelPromise promise) {
+    try {
+        if (!promise.setUncancellable() || !ensureOpen(promise)) {
+            return;
+        }
+        boolean firstRegistration = neverRegistered;
+        doRegister();
+        neverRegistered = false;
+        registered = true;
+
+        pipeline.invokeHandlerAddedIfNeeded();
+
+        safeSetSuccess(promise);
+        pipeline.fireChannelRegistered();
+        if (isActive()) {
+            if (firstRegistration) {
+                pipeline.fireChannelActive();
+            } else if (config().isAutoRead()) {
+                beginRead();
+            }
+        }
+    } catch (Throwable t) {
+        // Close the channel directly to avoid FD leak.
+        closeForcibly();
+        closeFuture.setClosed();
+        safeSetFailure(promise, t);
+    }
+}
+```
+>doRegister() 方法:在这里本质上是调用 AbstractNioChannel 的 doRegister
+```
+@Override
+protected void doRegister() throws Exception {
+    boolean selected = false;
+    for (;;) {
+        try {
+            selectionKey = javaChannel().register(eventLoop().selector, 0, this);
+            return;
+        } catch (CancelledKeyException e) {
+            if (!selected) {
+                eventLoop().selectNow();
+                selected = true;
+            } else {
+                throw e;
+            }
+        }
+    }
+}
+```
+>javaChannel() 就是服务端创建的channel(JDK) 
+>register() 方法：将 eventLoop 的 注册到 这个 javaChannel 上，并将 this(我们的服务端的channel绑定上去)，接下来 javaChannel 的读写事件，都交由 Netty 的 selector 进行处理
+
+>2. pipeline.invokeHandlerAddedIfNeeded()  
+>3. pipeline.fireChannelRegistered()  
+>这两个方法本质上是调用之前 在初始化 ServerBootstrap.handler() 中 ChannelInboundHandlerAdapter 接口对应的 handlerAdded 与 channelRegistered 方法
 
 注：以 NioEventLoopGroup 为例
 
