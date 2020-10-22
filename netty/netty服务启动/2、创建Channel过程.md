@@ -1,11 +1,15 @@
 # ***服务端创建 Channel***
 ### 通过 NioServerSocketChannel 举例
 
->newSocket ***<font color=#FF0000 >[jdk channel]</font>***  
->NioServerSocketChannelConfig() ***<font color=#FF0000 >[tcp 参数配置类]</font>***   
->AbstractNioChannel()  
->>ConfigureBlocking(false)  ***<font color=#FF0000 >[阻塞模式]</font>***   
->>AbstractChannel()  ***<font color=#FF0000 >[创建 id,unsafe,pipeline]</font>***   
+>`newSocket` **<font color=#FF0000 >[jdk channel]</font>**  
+
+>`NioServerSocketChannelConfig()` **<font color=#FF0000 >[tcp 参数配置类]</font>**   
+
+>`AbstractNioChannel()  `
+
+>>`ConfigureBlocking(false)`  **<font color=#FF0000 >[阻塞模式]</font>**   
+
+>>`AbstractChannel()`  **<font color=#FF0000 >[创建 id,unsafe,pipeline]</font>**   
 
 NioServerSocketChannel.java （Socket初始过程）
 ---- 

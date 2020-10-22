@@ -1,11 +1,16 @@
 # ***注册 Selector***
 
->AbstractChannel.register(channel) ***<font color=#FF0000 >[入口]</font>***  
->this.evenLoop = evenLoop ***<font color=#FF0000 >[绑定线程]</font>***   
->register0()  ***<font color=#FF0000 >[实际注册]</font>***  
->>doRegister(false)  ***<font color=#FF0000 >[JDK 底层注册]</font>***  
->>invokeHandlerAddedIfNedded()
->>fireChannelRegistered() ***<font color=#FF0000 >[传播事件]</font>***   
+>`AbstractChannel.register(channel)` **<font color=#FF0000 >[入口]</font>**  
+
+>`this.evenLoop = evenLoop` **<font color=#FF0000 >[绑定线程]</font>**   
+
+>`register0()`  **<font color=#FF0000 >[实际注册]</font>** 
+
+>>`doRegister(false)`  **<font color=#FF0000 >[JDK 底层注册]</font>**  
+
+>>`invokeHandlerAddedIfNedded()`
+
+>>`fireChannelRegistered()` **<font color=#FF0000 >[传播事件]</font>**   
 
 AbstractChannel.java
 ---- 
