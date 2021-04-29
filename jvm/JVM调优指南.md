@@ -1,12 +1,14 @@
 # ***JDK 调优工具***
 
 - [***JDK 调优工具***](#jdk-调优工具)
+  - [- GC日志详解](#--gc日志详解)
   - [JDK 内置指令](#jdk-内置指令)
       - [Jps-虚拟机进程状态工具](#jps-虚拟机进程状态工具)
       - [Jmap-虚拟机内存映射工具](#jmap-虚拟机内存映射工具)
       - [Jstack-堆栈跟踪](#jstack-堆栈跟踪)
       - [JInfo-配置信息](#jinfo-配置信息)
       - [Jstat-虚拟机统计信息监视工具](#jstat-虚拟机统计信息监视工具)
+  - [GC日志详解](#gc日志详解)
 ----
 
 ## JDK 内置指令
@@ -219,3 +221,19 @@
     150.4       1408.0      60544.0      13820.0      13820.0   194    81    2.938   3.863
     150.7       1408.0      60544.0      13820.0      13820.0   194    81    2.938   3.863
    ```
+
+
+## GC日志详解
+
+&ensp;&ensp;&ensp;&ensp;对于 JAVA 应用我们可以通过一些配置把程序运行过程中的 GC 日志全部打印出来，然后分析 GC 日志得到关键性指标，分析 GC 原因，调优 JVM 参数。
+
+```java
+// 打印GC日志方法，在JVM参数里增加参数，%t 代表时间 
+ ‐Xloggc:./gc‐%t.log ‐XX:+PrintGCDetails ‐XX:+PrintGCDateStamps  ‐XX:+PrintGCTimeStamps ‐XX:+PrintGCCause 
+ ‐XX:+UseGCLogFileRotation ‐XX:NumberOfGCLogFiles=10 ‐XX:GCLogFileSize=100M 
+```
+
+&ensp;&ensp;&ensp;&ensp; **JVM 参数汇总查看命令:**
+1. **java -XX:+PrintFlagsInitial** ： 表示打印出所有参数选项的默认值 
+2. **java -XX:+PrintFlagsFinal** ： 表示打印出所有参数选项在运行程序时生效的值
+
