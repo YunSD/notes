@@ -1,6 +1,6 @@
-示例表： 
+## 示例表： 
 
-lesson 2:
+## lesson 2:
 
 DROP TABLE IF EXISTS `actor`; 
 CREATE TABLE `actor` ( 
@@ -53,10 +53,43 @@ INSERT INTO employees(name,age,position,hire_time) VALUES('HanMeimei', 23,'de
 INSERT INTO employees(name,age,position,hire_time) VALUES('Lucy',23,'dev',NOW());
 
 
-lesson 3:
+## lesson 3:
 
 CREATE TABLE `test` ( 
  `id` int(11) NOT NULL AUTO_INCREMENT, 
 `name` varchar(255) DEFAULT NULL,   
 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8; 
+
+
+## lesson 4
+
+
+CREATE TABLE `employees` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`name` varchar(24) NOT NULL DEFAULT '' COMMENT '姓名',
+`age` int(11) NOT NULL DEFAULT '0' COMMENT '年龄',
+`position` varchar(20) NOT NULL DEFAULT '' COMMENT '职位',
+`hire_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '入职时间',
+PRIMARY KEY (`id`),
+KEY `idx_name_age_position` (`name`,`age`,`position`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='员工记录表';
+
+INSERT INTO employees(name,age,position,hire_time) VALUES('LiLei',22,'manager',NOW());
+INSERT INTO employees(name,age,position,hire_time) VALUES('HanMeimei', 23,'dev',NOW());
+INSERT INTO employees(name,age,position,hire_time) VALUES('Lucy',23,'dev',NOW());
+
+‐‐ 插入一些示例数据
+drop procedure if exists insert_emp;
+delimiter ;;
+create procedure insert_emp()
+begin
+declare i int;
+set i=1;
+while(i<=100000)do
+insert into employees(name,age,position) values(CONCAT('zhuge',i),i,'dev');
+set i=i+1;
+end while;
+end;;
+delimiter ;
+call insert_emp();
