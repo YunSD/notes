@@ -93,3 +93,15 @@ end while;
 end;;
 delimiter ;
 call insert_emp();
+
+# lesson 5
+
+CREATE TABLE `employees` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`name` varchar(24) NOT NULL DEFAULT '' COMMENT '姓名',
+`age` int(11) NOT NULL DEFAULT '0' COMMENT '年龄',
+`position` varchar(20) NOT NULL DEFAULT '' COMMENT '职位',
+`hire_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '入职时间',
+PRIMARY KEY (`id`),
+KEY `idx_name_age_position` (`name`,`age`,`position`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='员工记录表';
