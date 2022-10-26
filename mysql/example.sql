@@ -96,6 +96,7 @@ call insert_emp();
 
 # lesson 5
 
+-- 分页查询优化
 CREATE TABLE `employees` (
 `id` int(11) NOT NULL AUTO_INCREMENT,
 `name` varchar(24) NOT NULL DEFAULT '' COMMENT '姓名',
@@ -105,3 +106,45 @@ CREATE TABLE `employees` (
 PRIMARY KEY (`id`),
 KEY `idx_name_age_position` (`name`,`age`,`position`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='员工记录表';
+
+
+-- Join关联查询优化
+CREATE TABLE `t1` (
+`id` int(11) NOT NULL AUTO_INCREMENT,
+`a` int(11) DEFAULT NULL,
+`b` int(11) DEFAULT NULL,
+PRIMARY KEY (`id`),
+KEY `idx_a` (`a`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table t2 like t1;
+-- 插入一些示例数据
+-- 往t1表插入1万行记录
+drop procedure if exists insert_t1;
+delimiter ;;
+create procedure insert_t1()
+begin
+declare i int;
+set i=1;
+while(i<=10000)do
+insert into t1(a,b) values(i,i);
+set i=i+1;
+end while;
+end;;
+delimiter ;
+call insert_t1();
+
+-- 往t2表插入100行记录
+drop procedure if exists insert_t2;
+delimiter ;;
+create procedure insert_t2()
+begin
+declare i int;
+set i=1;
+while(i<=100)do
+insert into t2(a,b) values(i,i);
+set i=i+1;
+end while;
+end;;
+delimiter ;
+call insert_t2();
