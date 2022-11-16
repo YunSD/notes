@@ -148,3 +148,21 @@ end while;
 end;;
 delimiter ;
 call insert_t2();
+
+
+# lesson 6
+
+-- 建表SQL
+
+CREATE TABLE `mylock` (
+`id` INT (11) NOT NULL AUTO_INCREMENT,
+`NAME` VARCHAR (20) DEFAULT NULL,
+PRIMARY KEY (`id`)
+) ENGINE = MyISAM DEFAULT CHARSET = utf8;
+
+-- 插入数据
+
+INSERT INTO`test`.`mylock` (`id`, `NAME`) VALUES ('1', 'a');
+INSERT INTO`test`.`mylock` (`id`, `NAME`) VALUES ('2', 'b');
+INSERT INTO`test`.`mylock` (`id`, `NAME`) VALUES ('3', 'c');
+INSERT INTO`test`.`mylock` (`id`, `NAME`) VALUES ('4', 'd');
